@@ -206,6 +206,7 @@ const initiateFlutterwaveRegistrationPayment = async (req, res) => {
             tx_ref: reference,
             amount: amount,
             currency: 'NGN',
+            // redirect_url: `${BACKEND_URL}/api/payments/flutterwave-callback`,
             redirect_url: `${BACKEND_URL}/api/payments/flutterwave-callback`,
             customer: {
                 email: email,
@@ -274,7 +275,8 @@ const handleFlutterwaveCallback = async (req, res) => {
             throw new Error(flutterwaveData.message || 'Failed to verify payment');
         }
         if (flutterwaveData.data.status !== 'successful') {
-            return res.status(400).json({ message: 'Payment not successful' });
+            const frontendUrl = process.env.FRONTEND_URL || 'https://cre-8-frontend.vercel.app';
+            return res.redirect(`${frontendUrl}/register?payment=failed`);
         }
         // Get email from payment data - use original from meta if available (Flutterwave masks emails in test mode)
         const maskedEmail = flutterwaveData.data.customer.email;
@@ -321,10 +323,8 @@ const handleFlutterwaveCallback = async (req, res) => {
     }
     catch (error) {
         console.error('Flutterwave payment callback error:', error);
-        res.status(500).json({
-            message: 'Failed to verify payment',
-            error: error instanceof Error ? error.message : 'Unknown error'
-        });
+        const frontendUrl = process.env.FRONTEND_URL || 'https://cre-8-frontend.vercel.app';
+        res.redirect(`${frontendUrl}/register?payment=error&message=${encodeURIComponent(error instanceof Error ? error.message : 'Unknown error')}`);
     }
 };
 exports.handleFlutterwaveCallback = handleFlutterwaveCallback;
