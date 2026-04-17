@@ -39,8 +39,8 @@ app.use(cors({
   credentials: true,
 }));
 
-// API routes prefix - use /api for local dev, no prefix for Vercel
-const apiPrefix = process.env.VERCEL ? '' : '/api';
+// API routes prefix
+const apiPrefix = '/api';
 
 // Rate limiting
 const limiter = rateLimit({
@@ -110,25 +110,18 @@ const connectDatabase = async () => {
   }
 };
 
-// Start server (for local development)
-if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
-  const startServer = async () => {
-    try {
-      await connectDatabase();
-      app.listen(PORT, () => {
-        console.log(`Server is running on port ${PORT}`);
-        console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-      });
-    } catch (error) {
-      console.error('Failed to start server:', error);
-      process.exit(1);
-    }
-  };
-  startServer();
-} else {
-  // For Vercel: connect to DB and export app
-  connectDatabase().catch(console.error);
-}
+// Start server
+const startServer = async () => {
+  try {
+    await connectDatabase();
+    app.listen(PORT, () => {
+      console.log(`Server is running on port ${PORT}`);
+      console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+    });
+  } catch (error) {
+    console.error('Failed to start server:', error);
+    process.exit(1);
+  }
+};
 
-// Export for Vercel serverless
-export default app;
+startServer();
