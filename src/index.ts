@@ -42,16 +42,13 @@ app.use(cors({
   credentials: true,
 }));
 
-// API routes prefix - empty for Vercel (api/ folder adds /api automatically)
-const apiPrefix = '';
-
 // Rate limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // limit each IP to 100 requests per windowMs
   message: 'Too many requests from this IP, please try again later.',
 });
-app.use(`${apiPrefix}/`, limiter);
+app.use('/api/', limiter);
 
 // General middleware
 app.use(compression());
@@ -60,21 +57,20 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
 // Root route
-app.get(`${apiPrefix}/`, (req, res) => {
+app.get('/api/', (req, res) => {
   res.status(200).send('Server is running');
 });
 
 // Health check
-app.get(`${apiPrefix}/health`, (req, res) => {
+app.get('/api/health', (req, res) => {
   res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
 // Debug endpoint
-app.get(`${apiPrefix}/debug`, (req, res) => {
+app.get('/api/debug', (req, res) => {
   res.status(200).json({
     path: req.path,
     url: req.url,
-    apiPrefix,
     vercelEnv: process.env.VERCEL,
     nodeEnv: process.env.NODE_ENV,
     timestamp: new Date().toISOString()
@@ -82,21 +78,18 @@ app.get(`${apiPrefix}/debug`, (req, res) => {
 });
 
 // API routes
-console.log('Mounting routes with prefix:', apiPrefix);
-app.use(`${apiPrefix}/auth`, authRoutes);
-console.log('Auth routes mounted at:', `${apiPrefix}/auth`);
-app.use(`${apiPrefix}/contests`, contestRoutes);
-app.use(`${apiPrefix}/submissions`, submissionRoutes);
-app.use(`${apiPrefix}/voting`, votingRoutes);
-app.use(`${apiPrefix}/admin`, adminRoutes);
-app.use(`${apiPrefix}/profile`, profileRoutes);
-app.use(`${apiPrefix}/referrals`, referralRoutes);
-app.use(`${apiPrefix}/payments`, paymentRoutes);
-app.use(`${apiPrefix}/payments`, paymentInitiationRoutes);
-app.use(`${apiPrefix}/contestants`, contestantRoutes);
-app.use(`${apiPrefix}/contest-admin`, contestAdminRoutes);
-app.use(`${apiPrefix}/admin-auth`, adminAuthRoutes);
-app.use(`${apiPrefix}/admin`, adminUserRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/contests', contestRoutes);
+app.use('/api/submissions', submissionRoutes);
+app.use('/api/voting', votingRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/profile', profileRoutes);
+app.use('/api/referrals', referralRoutes);
+app.use('/api/payments', paymentRoutes);
+app.use('/api/payments', paymentInitiationRoutes);
+app.use('/api/contestants', contestantRoutes);
+app.use('/api/contest-admin', contestAdminRoutes);
+app.use('/api/admin-auth', adminAuthRoutes);
 
 // 404 handler
 app.use((req, res) => {
