@@ -24,7 +24,6 @@ const referralRoutes_1 = __importDefault(require("./modules/referrals/referralRo
 const contestantRoutes_1 = __importDefault(require("./modules/contestants/contestantRoutes"));
 const contestAdminRoutes_1 = __importDefault(require("./routes/contestAdminRoutes"));
 const adminAuthRoutes_1 = __importDefault(require("./routes/adminAuthRoutes"));
-const adminUserRoutes_1 = __importDefault(require("./routes/adminUserRoutes"));
 // Load environment variables
 dotenv_1.default.config();
 const app = (0, express_1.default)();
@@ -40,55 +39,49 @@ app.use((0, cors_1.default)({
     ],
     credentials: true,
 }));
-// API routes prefix - empty for Vercel (api/ folder adds /api automatically)
-const apiPrefix = '';
 // Rate limiting
 const limiter = (0, express_rate_limit_1.default)({
     windowMs: 15 * 60 * 1000, // 15 minutes
     max: 100, // limit each IP to 100 requests per windowMs
     message: 'Too many requests from this IP, please try again later.',
 });
-app.use(`${apiPrefix}/`, limiter);
+app.use('/api/', limiter);
 // General middleware
 app.use((0, compression_1.default)());
 app.use((0, morgan_1.default)('combined'));
 app.use(express_1.default.json({ limit: '10mb' }));
 app.use(express_1.default.urlencoded({ extended: true }));
 // Root route
-app.get(`${apiPrefix}/`, (req, res) => {
+app.get('/api/', (req, res) => {
     res.status(200).send('Server is running');
 });
 // Health check
-app.get(`${apiPrefix}/health`, (req, res) => {
+app.get('/api/health', (req, res) => {
     res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 // Debug endpoint
-app.get(`${apiPrefix}/debug`, (req, res) => {
+app.get('/api/debug', (req, res) => {
     res.status(200).json({
         path: req.path,
         url: req.url,
-        apiPrefix,
         vercelEnv: process.env.VERCEL,
         nodeEnv: process.env.NODE_ENV,
         timestamp: new Date().toISOString()
     });
 });
 // API routes
-console.log('Mounting routes with prefix:', apiPrefix);
-app.use(`${apiPrefix}/auth`, authRoutes_1.default);
-console.log('Auth routes mounted at:', `${apiPrefix}/auth`);
-app.use(`${apiPrefix}/contests`, contestRoutes_1.default);
-app.use(`${apiPrefix}/submissions`, submissionRoutes_1.default);
-app.use(`${apiPrefix}/voting`, votingRoutes_1.default);
-app.use(`${apiPrefix}/admin`, adminRoutes_1.default);
-app.use(`${apiPrefix}/profile`, profileRoutes_1.default);
-app.use(`${apiPrefix}/referrals`, referralRoutes_1.default);
-app.use(`${apiPrefix}/payments`, paymentRoutes_1.default);
-app.use(`${apiPrefix}/payments`, paymentInitiationRoutes_1.default);
-app.use(`${apiPrefix}/contestants`, contestantRoutes_1.default);
-app.use(`${apiPrefix}/contest-admin`, contestAdminRoutes_1.default);
-app.use(`${apiPrefix}/admin-auth`, adminAuthRoutes_1.default);
-app.use(`${apiPrefix}/admin`, adminUserRoutes_1.default);
+app.use('/api/auth', authRoutes_1.default);
+app.use('/api/contests', contestRoutes_1.default);
+app.use('/api/submissions', submissionRoutes_1.default);
+app.use('/api/voting', votingRoutes_1.default);
+app.use('/api/admin', adminRoutes_1.default);
+app.use('/api/profile', profileRoutes_1.default);
+app.use('/api/referrals', referralRoutes_1.default);
+app.use('/api/payments', paymentRoutes_1.default);
+app.use('/api/payments', paymentInitiationRoutes_1.default);
+app.use('/api/contestants', contestantRoutes_1.default);
+app.use('/api/contest-admin', contestAdminRoutes_1.default);
+app.use('/api/admin-auth', adminAuthRoutes_1.default);
 // 404 handler
 app.use((req, res) => {
     console.log('404 hit for:', req.method, req.path, 'Original URL:', req.originalUrl);
