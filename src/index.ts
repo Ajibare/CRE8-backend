@@ -67,7 +67,7 @@ app.get('/debug', (req, res) => {
     path: req.path,
     url: req.url,
     apiPrefix,
-    vercelEnv: process.env.VERCEL,
+    // vercelEnv: process.env.VERCEL,
     nodeEnv: process.env.NODE_ENV,
     timestamp: new Date().toISOString()
   });
