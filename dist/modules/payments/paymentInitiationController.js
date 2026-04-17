@@ -51,7 +51,7 @@ const initiateRegistrationPayment = async (req, res) => {
         // Generate payment reference
         const reference = (0, generateReference_1.generateReference)();
         const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY || paystack_1.paystackConfig.secretKey;
-        const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:5000';
+        const BACKEND_URL = process.env.BACKEND_URL || 'https://cre-8-backend.vercel.app';
         console.log('Paystack Secret Key loaded:', PAYSTACK_SECRET_KEY ? 'Yes (masked)' : 'NO');
         console.log('Backend URL:', BACKEND_URL);
         const payload = {
@@ -170,7 +170,7 @@ const handlePaystackCallback = async (req, res) => {
             // Don't fail the callback if email fails
         }
         // Redirect directly to register page with verified status
-        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+        const frontendUrl = process.env.FRONTEND_URL || 'https://cre-8-frontend.vercel.app';
         const redirectUrl = `${frontendUrl}/register?payment=success&email=${encodeURIComponent(email)}&ref=${encodeURIComponent(String(reference))}`;
         res.redirect(redirectUrl);
     }
@@ -200,8 +200,8 @@ const initiateFlutterwaveRegistrationPayment = async (req, res) => {
         const FLUTTERWAVE_SECRET_KEY = process.env.FLUTTERWAVE_SECRET_KEY || '';
         console.log('Flutterwave Secret Key loaded:', FLUTTERWAVE_SECRET_KEY ? 'Yes (masked)' : 'No');
         console.log('Key prefix:', FLUTTERWAVE_SECRET_KEY.substring(0, 15) + '...');
-        const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:5000';
-        const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
+        const BACKEND_URL = process.env.BACKEND_URL || 'https://cre-8-backend.vercel.app';
+        const FRONTEND_URL = process.env.FRONTEND_URL || 'https://cre-8-frontend.vercel.app';
         const payload = {
             tx_ref: reference,
             amount: amount,
@@ -258,7 +258,7 @@ const handleFlutterwaveCallback = async (req, res) => {
             return res.status(400).json({ message: 'Transaction ID or Reference is required' });
         }
         if (status === 'cancelled') {
-            const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+            const frontendUrl = process.env.FRONTEND_URL || 'https://cre-8-frontend.vercel.app';
             return res.redirect(`${frontendUrl}/register?payment=cancelled`);
         }
         // Verify payment with Flutterwave
@@ -315,7 +315,7 @@ const handleFlutterwaveCallback = async (req, res) => {
             console.error('Failed to send payment confirmation email:', emailError);
         }
         // Redirect directly to register page with verified status
-        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+        const frontendUrl = process.env.FRONTEND_URL || 'https://cre-8-frontend.vercel.app';
         const redirectUrl = `${frontendUrl}/register?payment=success&email=${encodeURIComponent(email)}&ref=${encodeURIComponent(String(reference))}`;
         res.redirect(redirectUrl);
     }
@@ -333,7 +333,7 @@ const verifyEmail = async (req, res) => {
     try {
         const { token, email } = req.query;
         if (!token || !email) {
-            const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+            const frontendUrl = process.env.FRONTEND_URL || 'https://cre-8-frontend.vercel.app';
             return res.redirect(`${frontendUrl}/register?error=Invalid verification link`);
         }
         // Hash the token from the URL
@@ -345,7 +345,7 @@ const verifyEmail = async (req, res) => {
             verificationExpires: { $gt: new Date() },
         });
         if (!user) {
-            const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+            const frontendUrl = process.env.FRONTEND_URL || 'https://cre-8-frontend.vercel.app';
             return res.redirect(`${frontendUrl}/register?error=Verification link expired or invalid`);
         }
         // Mark user as verified
@@ -355,13 +355,13 @@ const verifyEmail = async (req, res) => {
         await user.save();
         console.log('Email verified for user:', email);
         // Redirect to register page with verified status
-        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+        const frontendUrl = process.env.FRONTEND_URL || 'https://cre-8-frontend.vercel.app';
         const redirectUrl = `${frontendUrl}/register?verified=true&email=${encodeURIComponent(String(email))}`;
         res.redirect(redirectUrl);
     }
     catch (error) {
         console.error('Email verification error:', error);
-        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+        const frontendUrl = process.env.FRONTEND_URL || 'https://cre-8-frontend.vercel.app';
         res.redirect(`${frontendUrl}/register?error=Verification failed`);
     }
 };

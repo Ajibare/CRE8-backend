@@ -37,5 +37,5 @@ export const flutterwaveDefaults = {
   currency: 'NGN',
   country: 'NG',
   paymentOptions: 'card, banktransfer, ussd, barter, payattitude',
-  redirectUrl: (process.env.BACKEND_URL || 'http://localhost:5000') + '/api/payments/callback',
+  redirectUrl: (process.env.BACKEND_URL || 'https://cre-8-backend.vercel.app') + '/api/payments/callback',
 };

@@ -54,7 +54,7 @@ export const initiateRegistrationPayment = async (req: Request, res: Response) =
     const reference = generateReference();
 
     const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY || paystackConfig.secretKey;
-    const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:5000';
+    const BACKEND_URL = process.env.BACKEND_URL || 'https://cre-8-backend.vercel.app';
     
     console.log('Paystack Secret Key loaded:', PAYSTACK_SECRET_KEY ? 'Yes (masked)' : 'NO');
     console.log('Backend URL:', BACKEND_URL);
@@ -199,7 +199,7 @@ export const handlePaystackCallback = async (req: Request, res: Response) => {
     }
 
     // Redirect directly to register page with verified status
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const frontendUrl = process.env.FRONTEND_URL || 'https://cre-8-frontend.vercel.app';
     const redirectUrl = `${frontendUrl}/register?payment=success&email=${encodeURIComponent(email)}&ref=${encodeURIComponent(String(reference))}`;
 
     res.redirect(redirectUrl);
@@ -236,8 +236,8 @@ export const initiateFlutterwaveRegistrationPayment = async (req: Request, res: 
     console.log('Flutterwave Secret Key loaded:', FLUTTERWAVE_SECRET_KEY ? 'Yes (masked)' : 'No');
     console.log('Key prefix:', FLUTTERWAVE_SECRET_KEY.substring(0, 15) + '...');
     
-    const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:5000';
-    const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const BACKEND_URL = process.env.BACKEND_URL || 'https://cre-8-backend.vercel.app';
+    const FRONTEND_URL = process.env.FRONTEND_URL || 'https://cre-8-frontend.vercel.app';
 
     const payload = {
       tx_ref: reference,
@@ -304,7 +304,7 @@ export const handleFlutterwaveCallback = async (req: Request, res: Response) => 
     }
 
     if (status === 'cancelled') {
-      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+      const frontendUrl = process.env.FRONTEND_URL || 'https://cre-8-frontend.vercel.app';
       return res.redirect(`${frontendUrl}/register?payment=cancelled`);
     }
 
@@ -377,7 +377,7 @@ export const handleFlutterwaveCallback = async (req: Request, res: Response) => 
     }
 
     // Redirect directly to register page with verified status
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const frontendUrl = process.env.FRONTEND_URL || 'https://cre-8-frontend.vercel.app';
     const redirectUrl = `${frontendUrl}/register?payment=success&email=${encodeURIComponent(email)}&ref=${encodeURIComponent(String(reference))}`;
 
     res.redirect(redirectUrl);
@@ -397,7 +397,7 @@ export const verifyEmail = async (req: Request, res: Response) => {
     const { token, email } = req.query;
 
     if (!token || !email) {
-      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+      const frontendUrl = process.env.FRONTEND_URL || 'https://cre-8-frontend.vercel.app';
       return res.redirect(`${frontendUrl}/register?error=Invalid verification link`);
     }
 
@@ -412,7 +412,7 @@ export const verifyEmail = async (req: Request, res: Response) => {
     });
 
     if (!user) {
-      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+      const frontendUrl = process.env.FRONTEND_URL || 'https://cre-8-frontend.vercel.app';
       return res.redirect(`${frontendUrl}/register?error=Verification link expired or invalid`);
     }
 
@@ -425,14 +425,14 @@ export const verifyEmail = async (req: Request, res: Response) => {
     console.log('Email verified for user:', email);
 
     // Redirect to register page with verified status
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const frontendUrl = process.env.FRONTEND_URL || 'https://cre-8-frontend.vercel.app';
     const redirectUrl = `${frontendUrl}/register?verified=true&email=${encodeURIComponent(String(email))}`;
 
     res.redirect(redirectUrl);
 
   } catch (error) {
     console.error('Email verification error:', error);
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const frontendUrl = process.env.FRONTEND_URL || 'https://cre-8-frontend.vercel.app';
     res.redirect(`${frontendUrl}/register?error=Verification failed`);
   }
 };
