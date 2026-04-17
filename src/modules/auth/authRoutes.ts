@@ -7,11 +7,6 @@ import { body } from 'express-validator';
 
 const router = Router();
 
-// Root route
-router.get('/', (req, res) => {
-  res.json({ message: 'Auth API', endpoints: ['/register', '/login', '/forgot-password', '/reset-password', '/logout', '/refresh-token', '/profile', '/complete-registration'] });
-});
-
 // Validation for forgot password
 const forgotPasswordValidation = [
   body('email')
