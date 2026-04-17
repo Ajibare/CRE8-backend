@@ -51,14 +51,35 @@ const limiter = rateLimit({
   max: 100, // limit each IP to 100 requests per windowMs
   message: 'Too many requests from this IP, please try again later.',
 });
-// app.use(`${apiPrefix}/`, limiter);
-app.use(`${apiPrefix}`, limiter);
+app.use(`${apiPrefix}/`, limiter);
 
 // General middleware
 app.use(compression());
 app.use(morgan('combined'));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
+
+// Root route - API info
+app.get(`${apiPrefix}/`, (req, res) => {
+  res.status(200).json({
+    message: 'CRE8 Backend API',
+    version: '1.0.0',
+    endpoints: [
+      '/api/health',
+      '/api/auth',
+      '/api/contests',
+      '/api/submissions',
+      '/api/voting',
+      '/api/admin',
+      '/api/profile',
+      '/api/referrals',
+      '/api/payments',
+      '/api/contestants',
+      '/api/debug'
+    ],
+    timestamp: new Date().toISOString()
+  });
+});
 
 // Health check
 app.get(`${apiPrefix}/health`, (req, res) => {
