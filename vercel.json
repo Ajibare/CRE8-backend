@@ -1,13 +1,13 @@
 {
   "version": 2,
   "name": "cre8-backend",
-  "buildCommand": "npx tsc",
+  "buildCommand": null,
   "outputDirectory": "dist",
   "framework": null,
   "rewrites": [
     {
       "source": "/(.*)",
-      "destination": "/dist/index.js"
+      "destination": "/index.js"
     }
   ],
   "env": {
