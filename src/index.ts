@@ -74,7 +74,9 @@ app.get('/debug', (req, res) => {
 });
 
 // API routes
+console.log('Mounting routes with prefix:', apiPrefix);
 app.use(`${apiPrefix}/auth`, authRoutes);
+console.log('Auth routes mounted at:', `${apiPrefix}/auth`);
 app.use(`${apiPrefix}/contests`, contestRoutes);
 app.use(`${apiPrefix}/submissions`, submissionRoutes);
 app.use(`${apiPrefix}/voting`, votingRoutes);
@@ -90,7 +92,8 @@ app.use(`${apiPrefix}/admin`, adminUserRoutes);
 
 // 404 handler
 app.use((req, res) => {
-  res.status(404).json({ message: 'Route not found' });
+  console.log('404 hit for:', req.method, req.path, 'Original URL:', req.originalUrl);
+  res.status(404).json({ message: 'Route not found', path: req.path });
 });
 
 // Global error handler
