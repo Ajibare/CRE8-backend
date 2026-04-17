@@ -113,18 +113,27 @@ const connectDatabase = async () => {
   }
 };
 
-// Start server
-const startServer = async () => {
-  try {
-    await connectDatabase();
-    app.listen(PORT, () => {
-      console.log(`Server is running on port ${PORT}`);
-      console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-    });
-  } catch (error) {
-    console.error('Failed to start server:', error);
-    process.exit(1);
-  }
-};
+// Start server (local dev)
+if (process.env.NODE_ENV !== 'production') {
+  const startServer = async () => {
+    try {
+      await connectDatabase();
+      app.listen(PORT, () => {
+        console.log(`Server is running on port ${PORT}`);
+        console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+      });
+    } catch (error) {
+      console.error('Failed to start server:', error);
+      process.exit(1);
+    }
+  };
+  startServer();
+} else {
+  // Vercel: connect DB and export handler
+  connectDatabase().catch(console.error);
+}
 
-startServer();
+// Export for Vercel serverless
+module.exports = (req: any, res: any) => {
+  return app(req, res);
+};
