@@ -7,10 +7,6 @@ const validation_1 = require("../../middlewares/validation");
 const security_1 = require("../../middlewares/security");
 const express_validator_1 = require("express-validator");
 const router = (0, express_1.Router)();
-// Root route
-router.get('/', (req, res) => {
-    res.json({ message: 'Auth API', endpoints: ['/register', '/login', '/forgot-password', '/reset-password', '/logout', '/refresh-token', '/profile', '/complete-registration'] });
-});
 // Validation for forgot password
 const forgotPasswordValidation = [
     (0, express_validator_1.body)('email')

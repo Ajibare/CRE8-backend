@@ -24,6 +24,7 @@ const referralRoutes_1 = __importDefault(require("./modules/referrals/referralRo
 const contestantRoutes_1 = __importDefault(require("./modules/contestants/contestantRoutes"));
 const contestAdminRoutes_1 = __importDefault(require("./routes/contestAdminRoutes"));
 const adminAuthRoutes_1 = __importDefault(require("./routes/adminAuthRoutes"));
+const adminUserRoutes_1 = __importDefault(require("./routes/adminUserRoutes"));
 // Load environment variables
 dotenv_1.default.config();
 const app = (0, express_1.default)();
@@ -51,9 +52,12 @@ app.use((0, compression_1.default)());
 app.use((0, morgan_1.default)('combined'));
 app.use(express_1.default.json({ limit: '10mb' }));
 app.use(express_1.default.urlencoded({ extended: true }));
-// Root route
+// Root route - handles both / and /api/
+app.get('/', (req, res) => {
+    res.status(200).json({ message: 'CRE8 Backend API', status: 'running', docs: '/api/' });
+});
 app.get('/api/', (req, res) => {
-    res.status(200).send('Server is running');
+    res.status(200).json({ message: 'CRE8 Backend API', status: 'running', endpoints: ['/auth', '/contests', '/submissions', '/voting', '/admin', '/profile', '/referrals', '/payments', '/contestants', '/contest-admin', '/admin-auth'] });
 });
 // Health check
 app.get('/api/health', (req, res) => {
@@ -82,6 +86,7 @@ app.use('/api/payments', paymentInitiationRoutes_1.default);
 app.use('/api/contestants', contestantRoutes_1.default);
 app.use('/api/contest-admin', contestAdminRoutes_1.default);
 app.use('/api/admin-auth', adminAuthRoutes_1.default);
+app.use('/api/admin', adminUserRoutes_1.default);
 // 404 handler
 app.use((req, res) => {
     console.log('404 hit for:', req.method, req.path, 'Original URL:', req.originalUrl);

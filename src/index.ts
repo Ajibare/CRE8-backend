@@ -10,7 +10,6 @@ import { connectDB } from './database';
 // Import routes
 import authRoutes from './modules/auth/authRoutes';
 import paymentRoutes from './modules/payments/paymentRoutes';
-import voucherRoutes from './modules/vouchers/voucherRoutes';
 import paymentInitiationRoutes from './modules/payments/paymentInitiationRoutes';
 import contestRoutes from './modules/contest/contestRoutes';
 import submissionRoutes from './modules/submissions/submissionRoutes';
@@ -56,9 +55,12 @@ app.use(morgan('combined'));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-// Root route
+// Root route - handles both / and /api/
+app.get('/', (req, res) => {
+  res.status(200).json({ message: 'CRE8 Backend API', status: 'running', docs: '/api/' });
+});
 app.get('/api/', (req, res) => {
-  res.status(200).send('Server is running');
+  res.status(200).json({ message: 'CRE8 Backend API', status: 'running', endpoints: ['/auth', '/contests', '/submissions', '/voting', '/admin', '/profile', '/referrals', '/payments', '/contestants', '/contest-admin', '/admin-auth'] });
 });
 
 // Health check
@@ -90,6 +92,7 @@ app.use('/api/payments', paymentInitiationRoutes);
 app.use('/api/contestants', contestantRoutes);
 app.use('/api/contest-admin', contestAdminRoutes);
 app.use('/api/admin-auth', adminAuthRoutes);
+app.use('/api/admin', adminUserRoutes);
 
 // 404 handler
 app.use((req, res) => {
