@@ -39,13 +39,16 @@ app.use(cors({
   credentials: true,
 }));
 
+// API routes prefix - use /api for local dev, no prefix for Vercel
+const apiPrefix = process.env.VERCEL ? '' : '/api';
+
 // Rate limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // limit each IP to 100 requests per windowMs
   message: 'Too many requests from this IP, please try again later.',
 });
-app.use('/api/', limiter);
+app.use(`${apiPrefix}/`, limiter);
 
 // General middleware
 app.use(compression());
@@ -59,19 +62,19 @@ app.get('/health', (req, res) => {
 });
 
 // API routes
-app.use('/api/auth', authRoutes);
-app.use('/api/contests', contestRoutes);
-app.use('/api/submissions', submissionRoutes);
-app.use('/api/voting', votingRoutes);
-app.use('/api/admin', adminRoutes);
-app.use('/api/profile', profileRoutes);
-app.use('/api/referrals', referralRoutes);
-app.use('/api/payments', paymentRoutes);
-app.use('/api/payments', paymentInitiationRoutes);
-app.use('/api/contestants', contestantRoutes);
-app.use('/api/contest-admin', contestAdminRoutes);
-app.use('/api/admin-auth', adminAuthRoutes);
-app.use('/api/admin', adminUserRoutes);
+app.use(`${apiPrefix}/auth`, authRoutes);
+app.use(`${apiPrefix}/contests`, contestRoutes);
+app.use(`${apiPrefix}/submissions`, submissionRoutes);
+app.use(`${apiPrefix}/voting`, votingRoutes);
+app.use(`${apiPrefix}/admin`, adminRoutes);
+app.use(`${apiPrefix}/profile`, profileRoutes);
+app.use(`${apiPrefix}/referrals`, referralRoutes);
+app.use(`${apiPrefix}/payments`, paymentRoutes);
+app.use(`${apiPrefix}/payments`, paymentInitiationRoutes);
+app.use(`${apiPrefix}/contestants`, contestantRoutes);
+app.use(`${apiPrefix}/contest-admin`, contestAdminRoutes);
+app.use(`${apiPrefix}/admin-auth`, adminAuthRoutes);
+app.use(`${apiPrefix}/admin`, adminUserRoutes);
 
 // 404 handler
 app.use((req, res) => {

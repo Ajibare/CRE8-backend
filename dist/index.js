@@ -38,13 +38,15 @@ app.use((0, cors_1.default)({
     ],
     credentials: true,
 }));
+// API routes prefix - use /api for local dev, no prefix for Vercel
+const apiPrefix = process.env.VERCEL ? '' : '/api';
 // Rate limiting
 const limiter = (0, express_rate_limit_1.default)({
     windowMs: 15 * 60 * 1000, // 15 minutes
     max: 100, // limit each IP to 100 requests per windowMs
     message: 'Too many requests from this IP, please try again later.',
 });
-app.use('/api/', limiter);
+app.use(`${apiPrefix}/`, limiter);
 // General middleware
 app.use((0, compression_1.default)());
 app.use((0, morgan_1.default)('combined'));
@@ -55,19 +57,19 @@ app.get('/health', (req, res) => {
     res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 // API routes
-app.use('/api/auth', authRoutes_1.default);
-app.use('/api/contests', contestRoutes_1.default);
-app.use('/api/submissions', submissionRoutes_1.default);
-app.use('/api/voting', votingRoutes_1.default);
-app.use('/api/admin', adminRoutes_1.default);
-app.use('/api/profile', profileRoutes_1.default);
-app.use('/api/referrals', referralRoutes_1.default);
-app.use('/api/payments', paymentRoutes_1.default);
-app.use('/api/payments', paymentInitiationRoutes_1.default);
-app.use('/api/contestants', contestantRoutes_1.default);
-app.use('/api/contest-admin', contestAdminRoutes_1.default);
-app.use('/api/admin-auth', adminAuthRoutes_1.default);
-app.use('/api/admin', adminUserRoutes_1.default);
+app.use(`${apiPrefix}/auth`, authRoutes_1.default);
+app.use(`${apiPrefix}/contests`, contestRoutes_1.default);
+app.use(`${apiPrefix}/submissions`, submissionRoutes_1.default);
+app.use(`${apiPrefix}/voting`, votingRoutes_1.default);
+app.use(`${apiPrefix}/admin`, adminRoutes_1.default);
+app.use(`${apiPrefix}/profile`, profileRoutes_1.default);
+app.use(`${apiPrefix}/referrals`, referralRoutes_1.default);
+app.use(`${apiPrefix}/payments`, paymentRoutes_1.default);
+app.use(`${apiPrefix}/payments`, paymentInitiationRoutes_1.default);
+app.use(`${apiPrefix}/contestants`, contestantRoutes_1.default);
+app.use(`${apiPrefix}/contest-admin`, contestAdminRoutes_1.default);
+app.use(`${apiPrefix}/admin-auth`, adminAuthRoutes_1.default);
+app.use(`${apiPrefix}/admin`, adminUserRoutes_1.default);
 // 404 handler
 app.use((req, res) => {
     res.status(404).json({ message: 'Route not found' });
