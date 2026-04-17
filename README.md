@@ -124,7 +124,7 @@ npm install
 ```env
 PORT=5000
 NODE_ENV=development
-FRONTEND_URL=http://localhost:3000
+FRONTEND_URL=https://cre-8-frontend.vercel.app
 
 # Database
 MONGODB_URI=mongodb://localhost:27017/funtech-creative

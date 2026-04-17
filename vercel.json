@@ -1,16 +1,13 @@
 {
   "version": 2,
   "name": "cre8-backend",
-  "builds": [
+  "buildCommand": "npx tsc",
+  "outputDirectory": "dist",
+  "framework": null,
+  "rewrites": [
     {
-      "src": "dist/index.js",
-      "use": "@vercel/node"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "dist/index.js"
+      "source": "/(.*)",
+      "destination": "/dist/index.js"
     }
   ],
   "env": {
