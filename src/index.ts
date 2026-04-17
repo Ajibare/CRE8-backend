@@ -61,6 +61,18 @@ app.get('/health', (req, res) => {
   res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
+// Debug endpoint
+app.get('/debug', (req, res) => {
+  res.status(200).json({
+    path: req.path,
+    url: req.url,
+    apiPrefix,
+    vercelEnv: process.env.VERCEL,
+    nodeEnv: process.env.NODE_ENV,
+    timestamp: new Date().toISOString()
+  });
+});
+
 // API routes
 app.use(`${apiPrefix}/auth`, authRoutes);
 app.use(`${apiPrefix}/contests`, contestRoutes);
