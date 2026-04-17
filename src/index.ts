@@ -39,8 +39,8 @@ app.use(cors({
   credentials: true,
 }));
 
-// API routes prefix
-const apiPrefix = '/api';
+// API routes prefix - empty for Vercel (api/ folder adds /api automatically)
+const apiPrefix = '';
 
 // Rate limiting
 const limiter = rateLimit({
@@ -57,12 +57,12 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
 // Health check
-app.get('/health', (req, res) => {
+app.get(`${apiPrefix}/health`, (req, res) => {
   res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
 // Debug endpoint
-app.get('/debug', (req, res) => {
+app.get(`${apiPrefix}/debug`, (req, res) => {
   res.status(200).json({
     path: req.path,
     url: req.url,

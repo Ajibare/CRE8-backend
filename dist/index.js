@@ -38,8 +38,8 @@ app.use((0, cors_1.default)({
     ],
     credentials: true,
 }));
-// API routes prefix
-const apiPrefix = '/api';
+// API routes prefix - empty for Vercel (api/ folder adds /api automatically)
+const apiPrefix = '';
 // Rate limiting
 const limiter = (0, express_rate_limit_1.default)({
     windowMs: 15 * 60 * 1000, // 15 minutes
@@ -53,11 +53,11 @@ app.use((0, morgan_1.default)('combined'));
 app.use(express_1.default.json({ limit: '10mb' }));
 app.use(express_1.default.urlencoded({ extended: true }));
 // Health check
-app.get('/health', (req, res) => {
+app.get(`${apiPrefix}/health`, (req, res) => {
     res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 // Debug endpoint
-app.get('/debug', (req, res) => {
+app.get(`${apiPrefix}/debug`, (req, res) => {
     res.status(200).json({
         path: req.path,
         url: req.url,
