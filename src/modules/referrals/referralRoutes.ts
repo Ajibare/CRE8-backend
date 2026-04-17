@@ -3,6 +3,11 @@ import { getReferralStatistics, exportReferralData } from './referralStatsContro
 
 const router = Router();
 
+// Root route
+router.get('/', (req, res) => {
+  res.json({ message: 'Referrals API', endpoints: ['/statistics', '/export', '/validate'] });
+});
+
 // Get referral statistics
 router.get('/statistics', getReferralStatistics);
 
