@@ -59,26 +59,9 @@ app.use(morgan('combined'));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-// Root route - API info
+// Root route
 app.get(`${apiPrefix}/`, (req, res) => {
-  res.status(200).json({
-    message: 'CRE8 Backend API',
-    version: '1.0.0',
-    endpoints: [
-      '/api/health',
-      '/api/auth',
-      '/api/contests',
-      '/api/submissions',
-      '/api/voting',
-      '/api/admin',
-      '/api/profile',
-      '/api/referrals',
-      '/api/payments',
-      '/api/contestants',
-      '/api/debug'
-    ],
-    timestamp: new Date().toISOString()
-  });
+  res.status(200).send('Server is running');
 });
 
 // Health check

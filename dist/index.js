@@ -54,26 +54,9 @@ app.use((0, compression_1.default)());
 app.use((0, morgan_1.default)('combined'));
 app.use(express_1.default.json({ limit: '10mb' }));
 app.use(express_1.default.urlencoded({ extended: true }));
-// Root route - API info
+// Root route
 app.get(`${apiPrefix}/`, (req, res) => {
-    res.status(200).json({
-        message: 'CRE8 Backend API',
-        version: '1.0.0',
-        endpoints: [
-            '/api/health',
-            '/api/auth',
-            '/api/contests',
-            '/api/submissions',
-            '/api/voting',
-            '/api/admin',
-            '/api/profile',
-            '/api/referrals',
-            '/api/payments',
-            '/api/contestants',
-            '/api/debug'
-        ],
-        timestamp: new Date().toISOString()
-    });
+    res.status(200).send('Server is running');
 });
 // Health check
 app.get(`${apiPrefix}/health`, (req, res) => {
