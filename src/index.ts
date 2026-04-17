@@ -103,37 +103,11 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 });
 
 // Connect to database
-const connectDatabase = async () => {
-  try {
-    await connectDB();
-    console.log('Database connected successfully');
-  } catch (error) {
-    console.error('Failed to connect to database:', error);
-    throw error;
-  }
-};
+connectDB().then(() => {
+  console.log('Database connected successfully');
+}).catch((err) => {
+  console.error('Database connection failed:', err);
+});
 
-// Start server (local dev)
-if (process.env.NODE_ENV !== 'production') {
-  const startServer = async () => {
-    try {
-      await connectDatabase();
-      app.listen(PORT, () => {
-        console.log(`Server is running on port ${PORT}`);
-        console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-      });
-    } catch (error) {
-      console.error('Failed to start server:', error);
-      process.exit(1);
-    }
-  };
-  startServer();
-} else {
-  // Vercel: connect DB and export handler
-  connectDatabase().catch(console.error);
-}
-
-// Export for Vercel serverless
-module.exports = (req: any, res: any) => {
-  return app(req, res);
-};
+// Export app for Vercel
+export default app;

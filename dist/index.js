@@ -94,39 +94,11 @@ app.use((err, req, res, next) => {
     res.status(500).json({ message: 'Something went wrong!' });
 });
 // Connect to database
-const connectDatabase = async () => {
-    try {
-        await (0, database_1.connectDB)();
-        console.log('Database connected successfully');
-    }
-    catch (error) {
-        console.error('Failed to connect to database:', error);
-        throw error;
-    }
-};
-// Start server (local dev)
-if (process.env.NODE_ENV !== 'production') {
-    const startServer = async () => {
-        try {
-            await connectDatabase();
-            app.listen(PORT, () => {
-                console.log(`Server is running on port ${PORT}`);
-                console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-            });
-        }
-        catch (error) {
-            console.error('Failed to start server:', error);
-            process.exit(1);
-        }
-    };
-    startServer();
-}
-else {
-    // Vercel: connect DB and export handler
-    connectDatabase().catch(console.error);
-}
-// Export for Vercel serverless
-module.exports = (req, res) => {
-    return app(req, res);
-};
+(0, database_1.connectDB)().then(() => {
+    console.log('Database connected successfully');
+}).catch((err) => {
+    console.error('Database connection failed:', err);
+});
+// Export app for Vercel
+exports.default = app;
 //# sourceMappingURL=index.js.map
