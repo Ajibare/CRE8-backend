@@ -6,39 +6,41 @@ import { default as Vote } from './models/Vote';
 import { default as Payment } from './models/Payment';
 import { default as Voucher } from './models/Voucher';
 
-const connectDB = async (): Promise<void> => {
-  try {
-    const mongoURI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/funtech-creative';
-    
-    const conn = await mongoose.connect(mongoURI, {
-      serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s
-    });
+// Cached connection for serverless (Vercel)
+declare global {
+  var mongooseCache: { conn: typeof mongoose | null; promise: Promise<typeof mongoose> | null } | undefined;
+}
 
-    console.log(`MongoDB Connected: ${conn.connection.host}`);
-    
-    // Handle connection errors
-    mongoose.connection.on('error', (err) => {
-      console.error('MongoDB connection error:', err);
-    });
+let cached = global.mongooseCache;
 
-    mongoose.connection.on('disconnected', () => {
-      console.log('MongoDB disconnected');
-    });
+if (!cached) {
+  cached = global.mongooseCache = { conn: null, promise: null };
+}
 
-    // Graceful shutdown
-    process.on('SIGINT', async () => {
-      await mongoose.connection.close();
-      console.log('MongoDB connection closed through app termination');
-      process.exit(0);
-    });
+const connectDB = async (): Promise<typeof mongoose> => {
+  const mongoURI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/funtech-creative';
 
-  } catch (error) {
-    console.error('Error connecting to MongoDB:', error);
-    console.error('Make sure MongoDB is running. Install from: https://www.mongodb.com/try/download/community');
-    console.error('Or use MongoDB Atlas (cloud): https://www.mongodb.com/atlas');
-    // Don't exit - let the server start without DB for now
-    // process.exit(1);
+  if (cached!.conn) {
+    console.log('Using cached MongoDB connection');
+    return cached!.conn;
   }
+
+  if (!cached!.promise) {
+    cached!.promise = mongoose.connect(mongoURI, {
+      serverSelectionTimeoutMS: 10000,
+      maxPoolSize: 10,
+    }).then((mongoose) => {
+      console.log('MongoDB Connected:', mongoose.connection.host);
+      return mongoose;
+    }).catch((error) => {
+      console.error('Error connecting to MongoDB:', error);
+      cached!.promise = null; // Reset so next attempt can retry
+      throw error;
+    });
+  }
+
+  cached!.conn = await cached!.promise;
+  return cached!.conn;
 };
 
 export { connectDB, User, Contest, Submission, Vote, Payment };

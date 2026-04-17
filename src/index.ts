@@ -55,6 +55,17 @@ app.use(morgan('combined'));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
+// Ensure DB connection before any request (critical for Vercel serverless)
+app.use(async (_req, _res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    console.error('DB connection failed:', error);
+    _res.status(503).json({ message: 'Database connection failed' });
+  }
+});
+
 // Root route - handles both / and /api/
 app.get('/', (req, res) => {
   res.status(200).json({ message: 'CRE8 Backend API', status: 'running', docs: '/api/' });
@@ -106,12 +117,14 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
   res.status(500).json({ message: 'Something went wrong!' });
 });
 
-// Connect to database
-connectDB().then(() => {
-  console.log('Database connected successfully');
-}).catch((err) => {
-  console.error('Database connection failed:', err);
-});
+// Connect to database on startup (for local dev)
+if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+  connectDB().then(() => {
+    console.log('Database connected successfully');
+  }).catch((err) => {
+    console.error('Database connection failed:', err);
+  });
+}
 
 // Export app for Vercel
 export default app;

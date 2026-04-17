@@ -15,34 +15,31 @@ const Vote_1 = __importDefault(require("./models/Vote"));
 Object.defineProperty(exports, "Vote", { enumerable: true, get: function () { return Vote_1.default; } });
 const Payment_1 = __importDefault(require("./models/Payment"));
 Object.defineProperty(exports, "Payment", { enumerable: true, get: function () { return Payment_1.default; } });
+let cached = global.mongooseCache;
+if (!cached) {
+    cached = global.mongooseCache = { conn: null, promise: null };
+}
 const connectDB = async () => {
-    try {
-        const mongoURI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/funtech-creative';
-        const conn = await mongoose_1.default.connect(mongoURI, {
-            serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s
-        });
-        console.log(`MongoDB Connected: ${conn.connection.host}`);
-        // Handle connection errors
-        mongoose_1.default.connection.on('error', (err) => {
-            console.error('MongoDB connection error:', err);
-        });
-        mongoose_1.default.connection.on('disconnected', () => {
-            console.log('MongoDB disconnected');
-        });
-        // Graceful shutdown
-        process.on('SIGINT', async () => {
-            await mongoose_1.default.connection.close();
-            console.log('MongoDB connection closed through app termination');
-            process.exit(0);
+    const mongoURI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/funtech-creative';
+    if (cached.conn) {
+        console.log('Using cached MongoDB connection');
+        return cached.conn;
+    }
+    if (!cached.promise) {
+        cached.promise = mongoose_1.default.connect(mongoURI, {
+            serverSelectionTimeoutMS: 10000,
+            maxPoolSize: 10,
+        }).then((mongoose) => {
+            console.log('MongoDB Connected:', mongoose.connection.host);
+            return mongoose;
+        }).catch((error) => {
+            console.error('Error connecting to MongoDB:', error);
+            cached.promise = null; // Reset so next attempt can retry
+            throw error;
         });
     }
-    catch (error) {
-        console.error('Error connecting to MongoDB:', error);
-        console.error('Make sure MongoDB is running. Install from: https://www.mongodb.com/try/download/community');
-        console.error('Or use MongoDB Atlas (cloud): https://www.mongodb.com/atlas');
-        // Don't exit - let the server start without DB for now
-        // process.exit(1);
-    }
+    cached.conn = await cached.promise;
+    return cached.conn;
 };
 exports.connectDB = connectDB;
 //# sourceMappingURL=index.js.map
