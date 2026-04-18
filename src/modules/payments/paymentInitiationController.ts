@@ -117,14 +117,16 @@ export const handlePaystackCallback = async (req: Request, res: Response) => {
     const { transaction_id, tx_ref } = req.query;
 
     if (!transaction_id && !tx_ref) {
-      return res.status(400).json({ message: 'Transaction ID or Reference is required' });
+      const frontendUrl = process.env.FRONTEND_URL || 'https://cre-8-frontend.vercel.app';
+      return res.redirect(`${frontendUrl}/register?payment=error&message=${encodeURIComponent('Transaction ID or Reference is required')}`);
     }
 
     // Get reference from query params
     const reference = tx_ref || transaction_id;
 
     if (!reference) {
-      return res.status(400).json({ message: 'Transaction reference is required' });
+      const frontendUrl = process.env.FRONTEND_URL || 'https://cre-8-frontend.vercel.app';
+      return res.redirect(`${frontendUrl}/register?payment=error&message=${encodeURIComponent('Transaction reference is required')}`);
     }
 
     // Verify payment with Paystack
@@ -145,7 +147,8 @@ export const handlePaystackCallback = async (req: Request, res: Response) => {
     }
 
     if (paystackData.data.status !== 'success') {
-      return res.status(400).json({ message: 'Payment not successful' });
+      const frontendUrl = process.env.FRONTEND_URL || 'https://cre-8-frontend.vercel.app';
+      return res.redirect(`${frontendUrl}/register?payment=failed`);
     }
 
     // Get email from payment data
@@ -206,10 +209,8 @@ export const handlePaystackCallback = async (req: Request, res: Response) => {
 
   } catch (error) {
     console.error('Payment callback error:', error);
-    res.status(500).json({ 
-      message: 'Failed to verify payment',
-      error: error instanceof Error ? error.message : 'Unknown error'
-    });
+    const frontendUrl = process.env.FRONTEND_URL || 'https://cre-8-frontend.vercel.app';
+    res.redirect(`${frontendUrl}/register?payment=error&message=${encodeURIComponent(error instanceof Error ? error.message : 'Unknown error')}`);
   }
 };
 
