@@ -116,6 +116,8 @@ export const handlePaystackCallback = async (req: Request, res: Response) => {
   try {
     const { transaction_id, tx_ref } = req.query;
 
+    
+
     if (!transaction_id && !tx_ref) {
       const frontendUrl = process.env.FRONTEND_URL || 'https://cre-8-frontend.vercel.app';
       return res.redirect(`${frontendUrl}/register?payment=error&message=${encodeURIComponent('Transaction ID or Reference is required')}`);
