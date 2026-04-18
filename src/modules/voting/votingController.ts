@@ -39,6 +39,11 @@ export const initiateVotingPayment = async (req: Request, res: Response) => {
       }
     }
 
+    // Validate submissionId
+    if (!submissionId || submissionId.trim() === '') {
+      return res.status(400).json({ message: 'Submission ID is required' });
+    }
+
     // Verify submission exists
     const submission = await Submission.findById(submissionId);
     if (!submission) {

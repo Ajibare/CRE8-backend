@@ -40,6 +40,10 @@ const initiateVotingPayment = async (req, res) => {
                 return res.status(400).json({ message: 'Invalid vote bundle type' });
             }
         }
+        // Validate submissionId
+        if (!submissionId || submissionId.trim() === '') {
+            return res.status(400).json({ message: 'Submission ID is required' });
+        }
         // Verify submission exists
         const submission = await Submission_1.default.findById(submissionId);
         if (!submission) {
