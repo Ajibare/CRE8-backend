@@ -370,7 +370,7 @@ export const forgotPassword = async (req: Request, res: Response) => {
     } catch (emailError: any) {
       console.error('Failed to send password reset email:', emailError);
       // Log the reset link so developer can see it in development
-      const resetLink = `${process.env.FRONTEND_URL || 'https://cre-8-frontend.vercel.app'}/reset-password?token=${resetToken}&email=${encodeURIComponent(email)}`;
+      const resetLink = `${process.env.FRONTEND_URL || 'https://www.funtechinnovations.com'}/reset-password?token=${resetToken}&email=${encodeURIComponent(email)}`;
       console.log('========== PASSWORD RESET LINK (Development) ==========');
       console.log('Reset Link:', resetLink);
       console.log('For email:', email);

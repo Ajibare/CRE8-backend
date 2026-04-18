@@ -104,13 +104,13 @@ const handlePaystackCallback = async (req, res) => {
     try {
         const { transaction_id, tx_ref } = req.query;
         if (!transaction_id && !tx_ref) {
-            const frontendUrl = process.env.FRONTEND_URL || 'https://cre-8-frontend.vercel.app';
+            const frontendUrl = process.env.FRONTEND_URL || 'https://www.funtechinnovations.com';
             return res.redirect(`${frontendUrl}/register?payment=error&message=${encodeURIComponent('Transaction ID or Reference is required')}`);
         }
         // Get reference from query params
         const reference = tx_ref || transaction_id;
         if (!reference) {
-            const frontendUrl = process.env.FRONTEND_URL || 'https://cre-8-frontend.vercel.app';
+            const frontendUrl = process.env.FRONTEND_URL || 'https://www.funtechinnovations.com';
             return res.redirect(`${frontendUrl}/register?payment=error&message=${encodeURIComponent('Transaction reference is required')}`);
         }
         // Verify payment with Paystack
@@ -125,7 +125,7 @@ const handlePaystackCallback = async (req, res) => {
             throw new Error(paystackData.message || 'Failed to verify payment');
         }
         if (paystackData.data.status !== 'success') {
-            const frontendUrl = process.env.FRONTEND_URL || 'https://cre-8-frontend.vercel.app';
+            const frontendUrl = process.env.FRONTEND_URL || 'https://www.funtechinnovations.com';
             return res.redirect(`${frontendUrl}/register?payment=failed`);
         }
         // Get email from payment data
@@ -173,13 +173,13 @@ const handlePaystackCallback = async (req, res) => {
             // Don't fail the callback if email fails
         }
         // Redirect directly to register page with verified status
-        const frontendUrl = process.env.FRONTEND_URL || 'https://cre-8-frontend.vercel.app';
+        const frontendUrl = process.env.FRONTEND_URL || 'https://www.funtechinnovations.com';
         const redirectUrl = `${frontendUrl}/register?payment=success&email=${encodeURIComponent(email)}&ref=${encodeURIComponent(String(reference))}`;
         res.redirect(redirectUrl);
     }
     catch (error) {
         console.error('Payment callback error:', error);
-        const frontendUrl = process.env.FRONTEND_URL || 'https://cre-8-frontend.vercel.app';
+        const frontendUrl = process.env.FRONTEND_URL || 'https://www.funtechinnovations.com';
         res.redirect(`${frontendUrl}/register?payment=error&message=${encodeURIComponent(error instanceof Error ? error.message : 'Unknown error')}`);
     }
 };
@@ -202,7 +202,7 @@ const initiateFlutterwaveRegistrationPayment = async (req, res) => {
         console.log('Flutterwave Secret Key loaded:', FLUTTERWAVE_SECRET_KEY ? 'Yes (masked)' : 'No');
         console.log('Key prefix:', FLUTTERWAVE_SECRET_KEY.substring(0, 15) + '...');
         const BACKEND_URL = process.env.BACKEND_URL || 'https://cre-8-backend.vercel.app';
-        const FRONTEND_URL = process.env.FRONTEND_URL || 'https://cre-8-frontend.vercel.app';
+        const FRONTEND_URL = process.env.FRONTEND_URL || 'https://www.funtechinnovations.com';
         const payload = {
             tx_ref: reference,
             amount: amount,
@@ -260,7 +260,7 @@ const handleFlutterwaveCallback = async (req, res) => {
             return res.status(400).json({ message: 'Transaction ID or Reference is required' });
         }
         if (status === 'cancelled') {
-            const frontendUrl = process.env.FRONTEND_URL || 'https://cre-8-frontend.vercel.app';
+            const frontendUrl = process.env.FRONTEND_URL || 'https://www.funtechinnovations.com';
             return res.redirect(`${frontendUrl}/register?payment=cancelled`);
         }
         // Verify payment with Flutterwave
@@ -276,7 +276,7 @@ const handleFlutterwaveCallback = async (req, res) => {
             throw new Error(flutterwaveData.message || 'Failed to verify payment');
         }
         if (flutterwaveData.data.status !== 'successful') {
-            const frontendUrl = process.env.FRONTEND_URL || 'https://cre-8-frontend.vercel.app';
+            const frontendUrl = process.env.FRONTEND_URL || 'https://www.funtechinnovations.com';
             return res.redirect(`${frontendUrl}/register?payment=failed`);
         }
         // Get email from payment data - use original from meta if available (Flutterwave masks emails in test mode)
@@ -318,13 +318,13 @@ const handleFlutterwaveCallback = async (req, res) => {
             console.error('Failed to send payment confirmation email:', emailError);
         }
         // Redirect directly to register page with verified status
-        const frontendUrl = process.env.FRONTEND_URL || 'https://cre-8-frontend.vercel.app';
+        const frontendUrl = process.env.FRONTEND_URL || 'https://www.funtechinnovations.com';
         const redirectUrl = `${frontendUrl}/register?payment=success&email=${encodeURIComponent(email)}&ref=${encodeURIComponent(String(reference))}`;
         res.redirect(redirectUrl);
     }
     catch (error) {
         console.error('Flutterwave payment callback error:', error);
-        const frontendUrl = process.env.FRONTEND_URL || 'https://cre-8-frontend.vercel.app';
+        const frontendUrl = process.env.FRONTEND_URL || 'https://www.funtechinnovations.com';
         res.redirect(`${frontendUrl}/register?payment=error&message=${encodeURIComponent(error instanceof Error ? error.message : 'Unknown error')}`);
     }
 };
@@ -334,7 +334,7 @@ const verifyEmail = async (req, res) => {
     try {
         const { token, email } = req.query;
         if (!token || !email) {
-            const frontendUrl = process.env.FRONTEND_URL || 'https://cre-8-frontend.vercel.app';
+            const frontendUrl = process.env.FRONTEND_URL || 'https://www.funtechinnovations.com';
             return res.redirect(`${frontendUrl}/register?error=Invalid verification link`);
         }
         // Hash the token from the URL
@@ -346,7 +346,7 @@ const verifyEmail = async (req, res) => {
             verificationExpires: { $gt: new Date() },
         });
         if (!user) {
-            const frontendUrl = process.env.FRONTEND_URL || 'https://cre-8-frontend.vercel.app';
+            const frontendUrl = process.env.FRONTEND_URL || 'https://www.funtechinnovations.com';
             return res.redirect(`${frontendUrl}/register?error=Verification link expired or invalid`);
         }
         // Mark user as verified
@@ -356,13 +356,13 @@ const verifyEmail = async (req, res) => {
         await user.save();
         console.log('Email verified for user:', email);
         // Redirect to register page with verified status
-        const frontendUrl = process.env.FRONTEND_URL || 'https://cre-8-frontend.vercel.app';
+        const frontendUrl = process.env.FRONTEND_URL || 'https://www.funtechinnovations.com';
         const redirectUrl = `${frontendUrl}/register?verified=true&email=${encodeURIComponent(String(email))}`;
         res.redirect(redirectUrl);
     }
     catch (error) {
         console.error('Email verification error:', error);
-        const frontendUrl = process.env.FRONTEND_URL || 'https://cre-8-frontend.vercel.app';
+        const frontendUrl = process.env.FRONTEND_URL || 'https://www.funtechinnovations.com';
         res.redirect(`${frontendUrl}/register?error=Verification failed`);
     }
 };

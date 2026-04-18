@@ -35,7 +35,7 @@ app.set('trust proxy', 1);
 app.use(helmet());
 app.use(cors({
   origin: [
-    process.env.FRONTEND_URL || 'https://cre-8-frontend.vercel.app',
+    process.env.FRONTEND_URL || 'https://www.funtechinnovations.com',
     'http://localhost:3001',
   ],
   credentials: true,
