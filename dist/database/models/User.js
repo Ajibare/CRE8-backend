@@ -82,7 +82,9 @@ const UserSchema = new mongoose_1.Schema({
             'Digital Art',
             'Fashion Design',
             'Creative Direction',
-            'Advertising'
+            'Advertising',
+            'Art & Craft',
+            'Business & Creative Strategist',
         ],
     },
     country: {

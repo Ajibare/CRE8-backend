@@ -37,7 +37,9 @@ export const registerValidation = [
       'Digital Art',
       'Fashion Design',
       'Creative Direction',
-      'Advertising'
+      'Advertising',
+      'Art & Craft',
+      'Business & Creative Strategist',
     ])
     .withMessage('Please select a valid category'),
 ];
