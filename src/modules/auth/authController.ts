@@ -89,24 +89,6 @@ export const register = async (req: Request, res: Response) => {
       });
     }
 
-    // Validate social media verification (must be true)
-    if (!socialVerified) {
-      return res.status(400).json({ 
-        message: 'You must follow all our social media platforms to continue' 
-      });
-    }
-
-    // Validate social media follow status if provided (legacy check)
-    if (socialFollowStatus) {
-      const requiredPlatforms = ['instagram', 'facebook', 'twitter', 'youtube', 'tiktok'];
-      const allFollowed = requiredPlatforms.every(platform => socialFollowStatus[platform]);
-      if (!allFollowed) {
-        return res.status(400).json({ 
-          message: 'You must follow all our social media platforms to continue' 
-        });
-      }
-    }
-
     // Calculate payment amount
     let amount: number = paymentTypes.REGISTRATION;
     let discount = 0;

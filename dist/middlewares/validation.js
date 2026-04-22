@@ -41,8 +41,6 @@ exports.registerValidation = [
         'Advertising',
         'Art & Craft',
         'Business & Creative Strategist',
-
-
     ])
         .withMessage('Please select a valid category'),
 ];

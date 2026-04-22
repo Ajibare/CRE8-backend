@@ -62,22 +62,6 @@ const register = async (req, res) => {
                 message: 'An account with this email already exists. Please login instead.'
             });
         }
-        // Validate social media verification (must be true)
-        if (!socialVerified) {
-            return res.status(400).json({
-                message: 'You must follow all our social media platforms to continue'
-            });
-        }
-        // Validate social media follow status if provided (legacy check)
-        if (socialFollowStatus) {
-            const requiredPlatforms = ['instagram', 'facebook', 'twitter', 'youtube', 'tiktok'];
-            const allFollowed = requiredPlatforms.every(platform => socialFollowStatus[platform]);
-            if (!allFollowed) {
-                return res.status(400).json({
-                    message: 'You must follow all our social media platforms to continue'
-                });
-            }
-        }
         // Calculate payment amount
         let amount = paystack_1.paymentTypes.REGISTRATION;
         let discount = 0;
