@@ -57,6 +57,12 @@ export interface IUser extends Document {
   voucherUsed?: string;
   referralCode?: string; // Track which marketer referred this user
   
+  // Business Support Program fields
+  businessName?: string;
+  businessLocation?: string;
+  businessType?: string;
+  businessMedia?: string; // Photo or video URL
+  
   // Password Reset
   passwordResetToken?: string;
   passwordResetExpires?: Date;
@@ -219,6 +225,22 @@ const UserSchema: Schema = new Schema({
   referralCode: {
     type: String,
     index: true, // Index for faster queries
+  },
+  // Business Support Program fields
+  businessName: {
+    type: String,
+    trim: true,
+  },
+  businessLocation: {
+    type: String,
+    trim: true,
+  },
+  businessType: {
+    type: String,
+    trim: true,
+  },
+  businessMedia: {
+    type: String,
   },
   passwordResetToken: {
     type: String,

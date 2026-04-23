@@ -31,7 +31,10 @@ export const register = async (req: Request, res: Response) => {
       voucherCode,
       referralCode,
       socialFollowStatus,
-      socialVerified
+      socialVerified,
+      businessName,
+      businessLocation,
+      businessType
     } = req.body;
 
     // Check if user already exists
@@ -59,6 +62,12 @@ export const register = async (req: Request, res: Response) => {
         existingUser.socialFollowStatus = socialFollowStatus;
         existingUser.voucherUsed = voucherCode;
         existingUser.referralCode = referralCode ? referralCode.toUpperCase() : undefined;
+        // Add business support fields if category is Business Support Program
+        if (category === 'Business Support Program') {
+          existingUser.businessName = businessName;
+          existingUser.businessLocation = businessLocation;
+          existingUser.businessType = businessType;
+        }
         // Generate creative ID for the new user
         const creativeId = await generateCreativeId();
         existingUser.creativeId = creativeId;
@@ -129,6 +138,12 @@ export const register = async (req: Request, res: Response) => {
         voucherUsed: voucherCode,
         referralCode: referralCode ? referralCode.toUpperCase() : undefined,
         role: 'creative',
+        // Add business support fields if category is Business Support Program
+        ...(category === 'Business Support Program' && {
+          businessName,
+          businessLocation,
+          businessType,
+        }),
       });
       await user.save();
 
