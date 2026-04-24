@@ -128,6 +128,7 @@ const UserSchema: Schema = new Schema({
       'Advertising',
       'Art & Craft',
       'Business & Creative Strategist',
+      'Business Support Program'
     ],
   },
   country: {

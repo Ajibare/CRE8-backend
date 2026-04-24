@@ -40,6 +40,7 @@ export const registerValidation = [
       'Advertising',
       'Art & Craft',
       'Business & Creative Strategist',
+      'Business Support Program'
     ])
     .withMessage('Please select a valid category'),
 ];

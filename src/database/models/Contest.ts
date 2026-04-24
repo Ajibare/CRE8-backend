@@ -95,6 +95,7 @@ const ContestSchema: Schema = new Schema({
       'Advertising',
       'Art & Craft',
       'Business & Creative Strategist',
+      'Business Support Program'
     ],
   }],
   currentWeek: {

@@ -97,6 +97,7 @@ const ContestSchema = new mongoose_1.Schema({
                 'Advertising',
                 'Art & Craft',
                 'Business & Creative Strategist',
+                'Business Support Program'
             ],
         }],
     currentWeek: {
