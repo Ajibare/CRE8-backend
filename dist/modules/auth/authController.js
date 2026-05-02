@@ -7,13 +7,14 @@ exports.completeRegistration = exports.refreshToken = exports.logout = exports.r
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const User_1 = __importDefault(require("../../database/models/User"));
 const generateCreativeId_1 = require("../../utils/generateCreativeId");
+const generateBusinessId_1 = require("../../utils/generateBusinessId");
 const generateReference_1 = require("../../utils/generateReference");
 const sendEmail_1 = require("../../utils/sendEmail");
 const passwordUtils_1 = require("../../utils/passwordUtils");
 const paystack_1 = require("../../config/paystack");
 const register = async (req, res) => {
     try {
-        const { name, email, password, phone, category, country, state, city, dateOfBirth, gender, bio, experience, education, skills, portfolio, socialLinks, voucherCode, referralCode, socialFollowStatus, socialVerified } = req.body;
+        const { name, email, password, phone, category, country, state, city, dateOfBirth, gender, bio, experience, education, skills, portfolio, socialLinks, voucherCode, referralCode, socialFollowStatus, socialVerified, businessName, businessLocation, businessType } = req.body;
         // Check if user already exists
         const existingUser = await User_1.default.findOne({ email });
         if (existingUser) {
@@ -39,13 +40,21 @@ const register = async (req, res) => {
                 existingUser.socialFollowStatus = socialFollowStatus;
                 existingUser.voucherUsed = voucherCode;
                 existingUser.referralCode = referralCode ? referralCode.toUpperCase() : undefined;
-                // Generate creative ID for the new user
-                const creativeId = await (0, generateCreativeId_1.generateCreativeId)();
-                existingUser.creativeId = creativeId;
+                // Add business support fields if category is Business Support Program
+                if (category === 'Business Support Program') {
+                    existingUser.businessName = businessName;
+                    existingUser.businessLocation = businessLocation;
+                    existingUser.businessType = businessType;
+                }
+                // Generate ID based on category
+                const userId = existingUser.category === 'Business Support Program'
+                    ? await (0, generateBusinessId_1.generateBusinessId)()
+                    : await (0, generateCreativeId_1.generateCreativeId)();
+                existingUser.creativeId = userId;
                 await existingUser.save();
                 // Send welcome email
                 try {
-                    await (0, sendEmail_1.sendEmail)(existingUser.email, 'Welcome to FUNTECH Creative Innovation!', sendEmail_1.emailTemplates.welcome(existingUser.name, creativeId));
+                    await (0, sendEmail_1.sendEmail)(existingUser.email, 'Welcome to FUNTECH Creative Innovation!', sendEmail_1.emailTemplates.welcome(existingUser.name, userId));
                     console.log('Welcome email sent to:', existingUser.email);
                 }
                 catch (emailError) {
@@ -73,15 +82,17 @@ const register = async (req, res) => {
         }
         // Hash password
         const hashedPassword = await (0, passwordUtils_1.hashPassword)(password);
-        // Generate creative ID for the new user
-        const creativeId = await (0, generateCreativeId_1.generateCreativeId)();
+        // Generate ID based on category
+        const userId = category === 'Business Support Program'
+            ? await (0, generateBusinessId_1.generateBusinessId)()
+            : await (0, generateCreativeId_1.generateCreativeId)();
         // Create new user (all duplicate emails are rejected above)
         const user = new User_1.default({
             name,
             email,
             password: hashedPassword,
             phone,
-            creativeId,
+            creativeId: userId,
             category,
             country,
             state,
@@ -98,6 +109,12 @@ const register = async (req, res) => {
             voucherUsed: voucherCode,
             referralCode: referralCode ? referralCode.toUpperCase() : undefined,
             role: 'creative',
+            // Add business support fields if category is Business Support Program
+            ...(category === 'Business Support Program' && {
+                businessName,
+                businessLocation,
+                businessType,
+            }),
         });
         await user.save();
         // Send welcome email to newly registered user

@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import User from '../../database/models/User';
 import Payment from '../../database/models/Payment';
 import { generateCreativeId } from '../../utils/generateCreativeId';
+import { generateBusinessId } from '../../utils/generateBusinessId';
 import { generateReference } from '../../utils/generateReference';
 import { sendEmail, emailTemplates } from '../../utils/sendEmail';
 import { AuthRequest } from '../../middlewares/auth';
@@ -68,9 +69,11 @@ export const register = async (req: Request, res: Response) => {
           existingUser.businessLocation = businessLocation;
           existingUser.businessType = businessType;
         }
-        // Generate creative ID for the new user
-        const creativeId = await generateCreativeId();
-        existingUser.creativeId = creativeId;
+        // Generate ID based on category
+        const userId = existingUser.category === 'Business Support Program'
+          ? await generateBusinessId()
+          : await generateCreativeId();
+        existingUser.creativeId = userId;
         await existingUser.save();
 
         // Send welcome email
@@ -78,7 +81,7 @@ export const register = async (req: Request, res: Response) => {
           await sendEmail(
             existingUser.email,
             'Welcome to FUNTECH Creative Innovation!',
-            emailTemplates.welcome(existingUser.name, creativeId)
+            emailTemplates.welcome(existingUser.name, userId)
           );
           console.log('Welcome email sent to:', existingUser.email);
         } catch (emailError) {
@@ -112,8 +115,10 @@ export const register = async (req: Request, res: Response) => {
     // Hash password
     const hashedPassword = await hashPassword(password);
 
-    // Generate creative ID for the new user
-    const creativeId = await generateCreativeId();
+    // Generate ID based on category
+    const userId = category === 'Business Support Program'
+      ? await generateBusinessId()
+      : await generateCreativeId();
 
     // Create new user (all duplicate emails are rejected above)
     const user = new User({
@@ -121,7 +126,7 @@ export const register = async (req: Request, res: Response) => {
         email,
         password: hashedPassword,
         phone,
-        creativeId,
+        creativeId: userId,
         category,
         country,
         state,

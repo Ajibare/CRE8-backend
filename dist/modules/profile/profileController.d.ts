@@ -6,4 +6,5 @@ export declare const updateProfileImage: (req: AuthRequest, res: Response) => Pr
 export declare const changePassword: (req: AuthRequest, res: Response) => Promise<Response<any, Record<string, any>> | undefined>;
 export declare const getPublicProfile: (req: Request, res: Response) => Promise<Response<any, Record<string, any>> | undefined>;
 export declare const deleteAccount: (req: AuthRequest, res: Response) => Promise<Response<any, Record<string, any>> | undefined>;
+export declare const uploadBusinessVideo: (req: AuthRequest, res: Response) => Promise<Response<any, Record<string, any>> | undefined>;
 //# sourceMappingURL=profileController.d.ts.map

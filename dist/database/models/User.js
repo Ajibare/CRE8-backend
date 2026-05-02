@@ -184,6 +184,22 @@ const UserSchema = new mongoose_1.Schema({
         type: String,
         index: true, // Index for faster queries
     },
+    // Business Support Program fields
+    businessName: {
+        type: String,
+        trim: true,
+    },
+    businessLocation: {
+        type: String,
+        trim: true,
+    },
+    businessType: {
+        type: String,
+        trim: true,
+    },
+    businessMedia: {
+        type: String,
+    },
     passwordResetToken: {
         type: String,
         select: false,

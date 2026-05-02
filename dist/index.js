@@ -25,6 +25,7 @@ const contestantRoutes_1 = __importDefault(require("./modules/contestants/contes
 const contestAdminRoutes_1 = __importDefault(require("./routes/contestAdminRoutes"));
 const adminAuthRoutes_1 = __importDefault(require("./routes/adminAuthRoutes"));
 const adminUserRoutes_1 = __importDefault(require("./routes/adminUserRoutes"));
+const learningRoutes_1 = __importDefault(require("./modules/learning/learningRoutes"));
 // Load environment variables
 dotenv_1.default.config();
 const app = (0, express_1.default)();
@@ -98,6 +99,7 @@ app.use('/api/contestants', contestantRoutes_1.default);
 app.use('/api/contest-admin', contestAdminRoutes_1.default);
 app.use('/api/admin-auth', adminAuthRoutes_1.default);
 app.use('/api/admin', adminUserRoutes_1.default);
+app.use('/api/learning', learningRoutes_1.default);
 // 404 handler
 app.use((req, res) => {
     console.log('404 hit for:', req.method, req.path, 'Original URL:', req.originalUrl);

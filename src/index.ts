@@ -21,6 +21,7 @@ import contestantRoutes from './modules/contestants/contestantRoutes';
 import contestAdminRoutes from './routes/contestAdminRoutes';
 import adminAuthRoutes from './routes/adminAuthRoutes';
 import adminUserRoutes from './routes/adminUserRoutes';
+import learningRoutes from './modules/learning/learningRoutes';
 
 // Load environment variables
 dotenv.config();
@@ -104,6 +105,7 @@ app.use('/api/contestants', contestantRoutes);
 app.use('/api/contest-admin', contestAdminRoutes);
 app.use('/api/admin-auth', adminAuthRoutes);
 app.use('/api/admin', adminUserRoutes);
+app.use('/api/learning', learningRoutes);
 
 // 404 handler
 app.use((req, res) => {

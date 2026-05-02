@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import User from '../../database/models/User';
 import { AuthRequest } from '../../middlewares/auth';
 import { deleteFromCloudinary, uploadToCloudinary } from '../../utils/cloudinaryUtils';
+import { v2 as cloudinary } from 'cloudinary';
 
 // Get user profile
 export const getProfile = async (req: AuthRequest, res: Response) => {
@@ -289,6 +290,74 @@ export const deleteAccount = async (req: AuthRequest, res: Response) => {
     res.status(500).json({ 
       message: 'Failed to delete account',
       error: error.message 
+    });
+  }
+};
+
+// Upload business video for Business Support Program users
+export const uploadBusinessVideo = async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ message: 'No video file provided' });
+    }
+
+    // Check if user is a business support user
+    if (req.user.category !== 'Business Support Program') {
+      return res.status(403).json({ message: 'Only Business Support Program users can upload business videos' });
+    }
+
+    // Upload video to Cloudinary
+    const result = await cloudinary.uploader.upload_stream(
+      {
+        resource_type: 'video',
+        folder: 'business-videos',
+        allowed_formats: ['mp4', 'mov', 'avi', 'webm'],
+        transformation: [
+          { width: 1280, height: 720, crop: 'limit' },
+          { quality: 'auto' }
+        ]
+      },
+      (error: any, result: any) => {
+        if (error) {
+          console.error('Cloudinary upload error:', error);
+          return res.status(500).json({ message: 'Failed to upload video' });
+        }
+
+        if (result) {
+          // Update user with video URL
+          User.findByIdAndUpdate(
+            req.user._id,
+            { businessMedia: result.secure_url },
+            { new: true }
+          ).then(() => {
+            res.json({
+              message: 'Business video uploaded successfully',
+              businessMedia: result.secure_url,
+              thumbnail: result.thumbnail_url
+            });
+          }).catch((updateError) => {
+            console.error('User update error:', updateError);
+            res.status(500).json({ message: 'Failed to save video URL' });
+          });
+        }
+      }
+    );
+
+    // Stream the buffer to Cloudinary
+    const stream = require('stream');
+    const bufferStream = new stream.PassThrough();
+    bufferStream.end(req.file.buffer);
+    bufferStream.pipe(result);
+
+  } catch (error: any) {
+    console.error('Business video upload error:', error);
+    res.status(500).json({
+      message: 'Failed to upload business video',
+      error: error.message
     });
   }
 };

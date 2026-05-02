@@ -23,12 +23,27 @@ const upload = (0, multer_1.default)({
         }
     }
 });
+// Configure multer for video uploads (100MB limit)
+const videoUpload = (0, multer_1.default)({
+    storage,
+    limits: { fileSize: 100 * 1024 * 1024 }, // 100MB limit for videos
+    fileFilter: (req, file, cb) => {
+        // Accept video files only
+        if (file.mimetype.startsWith('video/')) {
+            cb(null, true);
+        }
+        else {
+            cb(new Error('Only video files are allowed'));
+        }
+    }
+});
 // Protected routes
 router.get('/me', auth_1.authenticate, profileController_1.getProfile);
 router.put('/me', auth_1.authenticate, profileController_1.updateProfile);
 router.post('/me/image', auth_1.authenticate, upload.single('image'), profileController_1.updateProfileImage);
 router.post('/me/change-password', auth_1.authenticate, profileController_1.changePassword);
 router.delete('/me', auth_1.authenticate, profileController_1.deleteAccount);
+router.post('/me/business-video', auth_1.authenticate, videoUpload.single('video'), profileController_1.uploadBusinessVideo);
 // Public profile
 router.get('/:userId', profileController_1.getPublicProfile);
 exports.default = router;

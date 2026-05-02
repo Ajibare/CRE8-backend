@@ -43,6 +43,10 @@ export interface IUser extends Document {
     grandFinalVotes?: number;
     voucherUsed?: string;
     referralCode?: string;
+    businessName?: string;
+    businessLocation?: string;
+    businessType?: string;
+    businessMedia?: string;
     passwordResetToken?: string;
     passwordResetExpires?: Date;
     lastPasswordReset?: Date;
