@@ -201,9 +201,9 @@ export const handlePaystackCallback = async (req: Request, res: Response) => {
       // Don't fail the callback if email fails
     }
 
-    // Redirect directly to register page with verified status
+    // Redirect directly to register page with verified status and type=business
     const frontendUrl = process.env.FRONTEND_URL || 'https://www.funtechinnovations.com';
-    const redirectUrl = `${frontendUrl}/register?payment=success&email=${encodeURIComponent(email)}&ref=${encodeURIComponent(String(reference))}`;
+    const redirectUrl = `${frontendUrl}/register?payment=success&email=${encodeURIComponent(email)}&ref=${encodeURIComponent(String(reference))}&type=business`;
 
     res.redirect(redirectUrl);
 
@@ -379,9 +379,9 @@ export const handleFlutterwaveCallback = async (req: Request, res: Response) => 
       console.error('Failed to send payment confirmation email:', emailError);
     }
 
-    // Redirect directly to register page with verified status
+    // Redirect directly to register page with verified status and type=business
     const frontendUrl = process.env.FRONTEND_URL || 'https://www.funtechinnovations.com';
-    const redirectUrl = `${frontendUrl}/register?payment=success&email=${encodeURIComponent(email)}&ref=${encodeURIComponent(String(reference))}`;
+    const redirectUrl = `${frontendUrl}/register?payment=success&email=${encodeURIComponent(email)}&ref=${encodeURIComponent(String(reference))}&type=business`;
 
     res.redirect(redirectUrl);
 

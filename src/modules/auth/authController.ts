@@ -12,11 +12,11 @@ import { paymentTypes } from '../../config/paystack';
 
 export const register = async (req: Request, res: Response) => {
   try {
-    const { 
-      name, 
-      email, 
+    const {
+      name,
+      email,
       password,
-      phone, 
+      phone,
       category,
       country,
       state,
@@ -38,10 +38,13 @@ export const register = async (req: Request, res: Response) => {
       businessType
     } = req.body;
 
+    // Determine registration type
+    const isBusinessSupport = category === 'Business Support Program';
+
     // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      // If user exists but hasn't completed registration (no password), allow them to complete it
+      // If user exists but hasn't completed registration (no password), allow completion
       // This handles users who paid first then came to register
       if (!existingUser.password) {
         // Complete user registration with all data
@@ -62,18 +65,24 @@ export const register = async (req: Request, res: Response) => {
         existingUser.socialLinks = socialLinks;
         existingUser.socialFollowStatus = socialFollowStatus;
         existingUser.voucherUsed = voucherCode;
-        existingUser.referralCode = referralCode ? referralCode.toUpperCase() : undefined;
-        // Add business support fields if category is Business Support Program
-        if (category === 'Business Support Program') {
+        // Only update referralCode if a new one is provided (preserve existing from payment)
+        if (referralCode) {
+          existingUser.referralCode = referralCode.toUpperCase();
+        }
+        // Add business support fields if applicable
+        if (isBusinessSupport) {
           existingUser.businessName = businessName;
           existingUser.businessLocation = businessLocation;
           existingUser.businessType = businessType;
         }
-        // Generate ID based on category
-        const userId = existingUser.category === 'Business Support Program'
-          ? await generateBusinessId()
-          : await generateCreativeId();
-        existingUser.creativeId = userId;
+        // Generate ID if not already set
+        if (!existingUser.creativeId) {
+          existingUser.creativeId = isBusinessSupport
+            ? await generateBusinessId()
+            : await generateCreativeId();
+        }
+        // Mark as verified (business paid already; creative just registered)
+        existingUser.isVerified = true;
         await existingUser.save();
 
         // Send welcome email
@@ -81,7 +90,7 @@ export const register = async (req: Request, res: Response) => {
           await sendEmail(
             existingUser.email,
             'Welcome to FUNTECH Creative Innovation!',
-            emailTemplates.welcome(existingUser.name, userId)
+            emailTemplates.welcome(existingUser.name, existingUser.creativeId!)
           );
           console.log('Welcome email sent to:', existingUser.email);
         } catch (emailError) {
@@ -94,103 +103,106 @@ export const register = async (req: Request, res: Response) => {
           existingUser: true
         });
       }
-      
+
       // User already exists and has completed registration - reject
       return res.status(400).json({
         message: 'An account with this email already exists. Please login instead.'
       });
     }
 
-    // Calculate payment amount
+    // New user registration
+    const hashedPassword = await hashPassword(password);
+
+    // Generate Creative/Business ID
+    const userId = isBusinessSupport
+      ? await generateBusinessId()
+      : await generateCreativeId();
+
+    // Create new user
+    const user = new User({
+      name,
+      email,
+      password: hashedPassword,
+      phone,
+      creativeId: userId,
+      category,
+      country,
+      state,
+      city,
+      dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : undefined,
+      gender,
+      bio,
+      experience,
+      education,
+      skills,
+      portfolio,
+      socialLinks,
+      socialFollowStatus,
+      voucherUsed: voucherCode,
+      referralCode: referralCode ? referralCode.toUpperCase() : undefined,
+      role: 'creative',
+      // Free verification for Creative; Business requires payment first
+      isVerified: !isBusinessSupport,
+      ...(isBusinessSupport && {
+        businessName,
+        businessLocation,
+        businessType,
+      }),
+    });
+    await user.save();
+
+    // Send welcome email to newly registered user
+    try {
+      await sendEmail(
+        user.email,
+        'Welcome to FUNTECH Creative Innovation!',
+        emailTemplates.welcome(user.name, user.creativeId!)
+      );
+      console.log('Welcome email sent to:', user.email);
+    } catch (emailError) {
+      console.error('Failed to send welcome email:', emailError);
+    }
+
+    // Creative registration: free, no payment required
+    if (!isBusinessSupport) {
+      return res.status(201).json({
+        message: 'Registration successful! You can now log in.',
+        userId: user._id,
+      });
+    }
+
+    // Business Support: require payment
+    // Calculate payment amount (with possible voucher discount)
     let amount: number = paymentTypes.REGISTRATION;
     let discount = 0;
-
     if (voucherCode) {
-      // For now, we'll apply a standard discount if voucher code is provided
-      // In production, this should validate the voucher against the database
       discount = 500; // #500 discount
       amount = paymentTypes.REGISTRATION - discount;
     }
 
-    // Hash password
-    const hashedPassword = await hashPassword(password);
+    // Generate payment reference
+    const reference = generateReference();
 
-    // Generate ID based on category
-    const userId = category === 'Business Support Program'
-      ? await generateBusinessId()
-      : await generateCreativeId();
-
-    // Create new user (all duplicate emails are rejected above)
-    const user = new User({
-        name,
-        email,
-        password: hashedPassword,
-        phone,
-        creativeId: userId,
-        category,
-        country,
-        state,
-        city,
-        dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : undefined,
-        gender,
-        bio,
-        experience,
-        education,
-        skills,
-        portfolio,
-        socialLinks,
-        socialFollowStatus,
-        voucherUsed: voucherCode,
-        referralCode: referralCode ? referralCode.toUpperCase() : undefined,
-        role: 'creative',
-        // Add business support fields if category is Business Support Program
-        ...(category === 'Business Support Program' && {
-          businessName,
-          businessLocation,
-          businessType,
-        }),
-      });
-      await user.save();
-
-      // Send welcome email to newly registered user
-      try {
-        await sendEmail(
-          user.email,
-          'Welcome to FUNTECH Creative Innovation!',
-          emailTemplates.welcome(user.name, user.creativeId!)
-        );
-        console.log('Welcome email sent to:', user.email);
-      } catch (emailError) {
-        console.error('Failed to send welcome email:', emailError);
-        // Don't fail registration if email fails
-      }
-
-      // Generate payment reference
-      const reference = generateReference();
-
-      res.status(201).json({
-        message: 'Registration initiated. Please complete payment to activate your account.',
-        userId: user._id,
-        paymentReference: reference,
-        amount,
-        discount,
-        voucherApplied: !!voucherCode,
-      });
-    } catch (error: any) {
-      console.error('Registration error:', error);
-      // Check if it's a validation error
-      if (error.name === 'ValidationError') {
-        const messages = Object.values(error.errors).map((err: any) => err.message);
-        return res.status(400).json({ message: 'Validation Error', errors: messages });
-      }
-      // Check if it's a duplicate key error
-      if (error.code === 11000) {
-        return res.status(400).json({ message: 'User already exists with this email' });
-      }
-      res.status(500).json({ message: 'Registration failed', error: error.message });
+    res.status(201).json({
+      message: 'Registration initiated. Please complete payment to activate your account.',
+      userId: user._id,
+      paymentReference: reference,
+      amount,
+      discount,
+      voucherApplied: !!voucherCode,
+    });
+  } catch (error: any) {
+    console.error('Registration error:', error);
+    if (error.name === 'ValidationError') {
+      const messages = Object.values(error.errors).map((err: any) => err.message);
+      return res.status(400).json({ message: 'Validation Error', errors: messages });
     }
+    if (error.code === 11000) {
+      return res.status(400).json({ message: 'User already exists with this email' });
+    }
+    res.status(500).json({ message: 'Registration failed', error: error.message });
   }
-// };
+};
 
 export const login = async (req: Request, res: Response) => {
   try {
@@ -300,8 +312,8 @@ export const forgotPassword = async (req: Request, res: Response) => {
 
     // Check if user already has a recent reset request (prevent spam)
     if (user.passwordResetExpires && user.passwordResetExpires > new Date()) {
-      return res.status(429).json({ 
-        message: 'A password reset link has already been sent. Please check your email or wait 10 minutes before trying again.' 
+      return res.status(429).json({
+        message: 'A password reset link has already been sent. Please check your email or wait 10 minutes before trying again.'
       });
     }
 
@@ -380,7 +392,7 @@ export const forgotPassword = async (req: Request, res: Response) => {
     }
 
     // Always return success for security (don't reveal if email exists)
-    res.json({ 
+    res.json({
       message: 'If an account with that email exists, a password reset link has been sent.',
       timestamp: new Date().toISOString()
     });
@@ -391,7 +403,7 @@ export const forgotPassword = async (req: Request, res: Response) => {
       code: error?.code,
       stack: error?.stack,
     });
-    res.status(500).json({ 
+    res.status(500).json({
       message: 'Failed to process password reset request',
       error: error?.message || 'Unknown error'
     });
@@ -404,15 +416,15 @@ export const resetPassword = async (req: Request, res: Response) => {
 
     // Validate input
     if (!token || !email || !newPassword) {
-      return res.status(400).json({ 
-        message: 'Reset token, email, and new password are required' 
+      return res.status(400).json({
+        message: 'Reset token, email, and new password are required'
       });
     }
 
     // Validate password strength
     if (newPassword.length < 6) {
-      return res.status(400).json({ 
-        message: 'Password must be at least 6 characters long' 
+      return res.status(400).json({
+        message: 'Password must be at least 6 characters long'
       });
     }
 
@@ -435,8 +447,8 @@ export const resetPassword = async (req: Request, res: Response) => {
     if (user.password) {
       const isSamePassword = await comparePassword(newPassword, user.password);
       if (isSamePassword) {
-        return res.status(400).json({ 
-          message: 'New password must be different from the current password' 
+        return res.status(400).json({
+          message: 'New password must be different from the current password'
         });
       }
     }
@@ -510,7 +522,7 @@ export const resetPassword = async (req: Request, res: Response) => {
       confirmationEmailHtml
     );
 
-    res.json({ 
+    res.json({
       message: 'Password reset successful',
       timestamp: new Date().toISOString()
     });
@@ -525,9 +537,9 @@ export const logout = async (req: AuthRequest, res: Response) => {
     // In a stateless JWT system, logout is typically handled on the client side
     // by removing the token from storage. However, we can implement token blacklisting
     // or track active sessions if needed for future enhancements.
-    
+
     // For now, we'll just return success and let the client handle token removal
-    res.json({ 
+    res.json({
       message: 'Logout successful',
       timestamp: new Date().toISOString()
     });
