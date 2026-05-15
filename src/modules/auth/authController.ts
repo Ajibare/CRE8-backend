@@ -231,8 +231,10 @@ export const login = async (req: Request, res: Response) => {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
-    if (!user.isVerified) {
-      console.log('User not verified:', email);
+    // Only check verification for Business Support users (creatives are auto-verified)
+    const isBusinessSupport = user.category === 'Business Support Program';
+    if (isBusinessSupport && !user.isVerified) {
+      console.log('Business support user not verified:', email);
       return res.status(401).json({ message: 'Please complete registration payment first' });
     }
 
