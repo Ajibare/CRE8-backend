@@ -15,10 +15,12 @@ const paystack_1 = require("../../config/paystack");
 const register = async (req, res) => {
     try {
         const { name, email, password, phone, category, country, state, city, dateOfBirth, gender, bio, experience, education, skills, portfolio, socialLinks, voucherCode, referralCode, socialFollowStatus, socialVerified, businessName, businessLocation, businessType } = req.body;
+        // Determine registration type
+        const isBusinessSupport = category === 'Business Support Program';
         // Check if user already exists
         const existingUser = await User_1.default.findOne({ email });
         if (existingUser) {
-            // If user exists but hasn't completed registration (no password), allow them to complete it
+            // If user exists but hasn't completed registration (no password), allow completion
             // This handles users who paid first then came to register
             if (!existingUser.password) {
                 // Complete user registration with all data
@@ -39,22 +41,28 @@ const register = async (req, res) => {
                 existingUser.socialLinks = socialLinks;
                 existingUser.socialFollowStatus = socialFollowStatus;
                 existingUser.voucherUsed = voucherCode;
-                existingUser.referralCode = referralCode ? referralCode.toUpperCase() : undefined;
-                // Add business support fields if category is Business Support Program
-                if (category === 'Business Support Program') {
+                // Only update referralCode if a new one is provided (preserve existing from payment)
+                if (referralCode) {
+                    existingUser.referralCode = referralCode.toUpperCase();
+                }
+                // Add business support fields if applicable
+                if (isBusinessSupport) {
                     existingUser.businessName = businessName;
                     existingUser.businessLocation = businessLocation;
                     existingUser.businessType = businessType;
                 }
-                // Generate ID based on category
-                const userId = existingUser.category === 'Business Support Program'
-                    ? await (0, generateBusinessId_1.generateBusinessId)()
-                    : await (0, generateCreativeId_1.generateCreativeId)();
-                existingUser.creativeId = userId;
+                // Generate ID if not already set
+                if (!existingUser.creativeId) {
+                    existingUser.creativeId = isBusinessSupport
+                        ? await (0, generateBusinessId_1.generateBusinessId)()
+                        : await (0, generateCreativeId_1.generateCreativeId)();
+                }
+                // Mark as verified (business paid already; creative just registered)
+                existingUser.isVerified = true;
                 await existingUser.save();
                 // Send welcome email
                 try {
-                    await (0, sendEmail_1.sendEmail)(existingUser.email, 'Welcome to FUNTECH Creative Innovation!', sendEmail_1.emailTemplates.welcome(existingUser.name, userId));
+                    await (0, sendEmail_1.sendEmail)(existingUser.email, 'Welcome to FUNTECH Creative Innovation!', sendEmail_1.emailTemplates.welcome(existingUser.name, existingUser.creativeId));
                     console.log('Welcome email sent to:', existingUser.email);
                 }
                 catch (emailError) {
@@ -71,22 +79,13 @@ const register = async (req, res) => {
                 message: 'An account with this email already exists. Please login instead.'
             });
         }
-        // Calculate payment amount
-        let amount = paystack_1.paymentTypes.REGISTRATION;
-        let discount = 0;
-        if (voucherCode) {
-            // For now, we'll apply a standard discount if voucher code is provided
-            // In production, this should validate the voucher against the database
-            discount = 500; // #500 discount
-            amount = paystack_1.paymentTypes.REGISTRATION - discount;
-        }
-        // Hash password
+        // New user registration
         const hashedPassword = await (0, passwordUtils_1.hashPassword)(password);
-        // Generate ID based on category
-        const userId = category === 'Business Support Program'
+        // Generate Creative/Business ID
+        const userId = isBusinessSupport
             ? await (0, generateBusinessId_1.generateBusinessId)()
             : await (0, generateCreativeId_1.generateCreativeId)();
-        // Create new user (all duplicate emails are rejected above)
+        // Create new user
         const user = new User_1.default({
             name,
             email,
@@ -109,8 +108,9 @@ const register = async (req, res) => {
             voucherUsed: voucherCode,
             referralCode: referralCode ? referralCode.toUpperCase() : undefined,
             role: 'creative',
-            // Add business support fields if category is Business Support Program
-            ...(category === 'Business Support Program' && {
+            // Free verification for Creative; Business requires payment first
+            isVerified: !isBusinessSupport,
+            ...(isBusinessSupport && {
                 businessName,
                 businessLocation,
                 businessType,
@@ -124,7 +124,21 @@ const register = async (req, res) => {
         }
         catch (emailError) {
             console.error('Failed to send welcome email:', emailError);
-            // Don't fail registration if email fails
+        }
+        // Creative registration: free, no payment required
+        if (!isBusinessSupport) {
+            return res.status(201).json({
+                message: 'Registration successful! You can now log in.',
+                userId: user._id,
+            });
+        }
+        // Business Support: require payment
+        // Calculate payment amount (with possible voucher discount)
+        let amount = paystack_1.paymentTypes.REGISTRATION;
+        let discount = 0;
+        if (voucherCode) {
+            discount = 500; // #500 discount
+            amount = paystack_1.paymentTypes.REGISTRATION - discount;
         }
         // Generate payment reference
         const reference = (0, generateReference_1.generateReference)();
@@ -139,12 +153,10 @@ const register = async (req, res) => {
     }
     catch (error) {
         console.error('Registration error:', error);
-        // Check if it's a validation error
         if (error.name === 'ValidationError') {
             const messages = Object.values(error.errors).map((err) => err.message);
             return res.status(400).json({ message: 'Validation Error', errors: messages });
         }
-        // Check if it's a duplicate key error
         if (error.code === 11000) {
             return res.status(400).json({ message: 'User already exists with this email' });
         }
@@ -152,7 +164,6 @@ const register = async (req, res) => {
     }
 };
 exports.register = register;
-// };
 const login = async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -175,9 +186,14 @@ const login = async (req, res) => {
             console.log('Invalid password for:', email);
             return res.status(401).json({ message: 'Invalid credentials' });
         }
-        if (!user.isVerified) {
-            console.log('User not verified:', email);
-            return res.status(401).json({ message: 'Please complete registration payment first' });
+        // All users can login regardless of verification status
+        // Creative users are auto-verified on registration
+        // Auto-verify creative users if they're not verified (shouldn't happen, but safety check)
+        const isBusinessSupport = user.category === 'Business Support Program';
+        if (!isBusinessSupport && !user.isVerified) {
+            console.log('Auto-verifying creative user:', email);
+            user.isVerified = true;
+            await user.save();
         }
         const token = jsonwebtoken_1.default.sign({ userId: user._id }, process.env.JWT_SECRET || 'fallback-secret', { expiresIn: '7d' });
         res.json({

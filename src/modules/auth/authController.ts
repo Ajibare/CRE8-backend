@@ -231,14 +231,11 @@ export const login = async (req: Request, res: Response) => {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
-    // Only check verification for Business Support users (creatives are auto-verified)
-    const isBusinessSupport = user.category === 'Business Support Program';
-    if (isBusinessSupport && !user.isVerified) {
-      console.log('Business support user not verified:', email);
-      return res.status(401).json({ message: 'Please complete registration payment first' });
-    }
+    // All users can login regardless of verification status
+    // Creative users are auto-verified on registration
 
     // Auto-verify creative users if they're not verified (shouldn't happen, but safety check)
+    const isBusinessSupport = user.category === 'Business Support Program';
     if (!isBusinessSupport && !user.isVerified) {
       console.log('Auto-verifying creative user:', email);
       user.isVerified = true;
