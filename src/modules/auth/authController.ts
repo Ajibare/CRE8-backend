@@ -238,6 +238,13 @@ export const login = async (req: Request, res: Response) => {
       return res.status(401).json({ message: 'Please complete registration payment first' });
     }
 
+    // Auto-verify creative users if they're not verified (shouldn't happen, but safety check)
+    if (!isBusinessSupport && !user.isVerified) {
+      console.log('Auto-verifying creative user:', email);
+      user.isVerified = true;
+      await user.save();
+    }
+
     const token = jwt.sign(
       { userId: user._id },
       process.env.JWT_SECRET || 'fallback-secret',
