@@ -12,6 +12,16 @@ import { paymentTypes } from '../../config/paystack';
 
 export const register = async (req: Request, res: Response) => {
   try {
+    // Check registration deadline - June 6, 2026 at 11:59pm UTC+01:00 (22:59 UTC)
+    const registrationDeadline = new Date('2026-06-06T22:59:00Z');
+    const now = new Date();
+
+    if (now > registrationDeadline) {
+      return res.status(403).json({
+        message: 'Registration has ended. The deadline was June 6, 2026 at 11:59pm.'
+      });
+    }
+
     const {
       name,
       email,
